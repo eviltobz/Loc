@@ -37,6 +37,7 @@ namespace LocTools
         public void Resend(int? notificationId)
         {
             // if no arg, list some, prompt for number, or show next X or abort, rather than just the last 10 and that's it.
+            // when listing recent notifications try to include the number of recipients & datasource id/name
             if (notificationId.HasValue)
             {
                 output.Line(
@@ -58,6 +59,16 @@ namespace LocTools
                 output.Line("Last " + x + " notifications:");
                 var sql = "select top " + x +
                           " notification_desc, notificationId from tbl_schedule_notifications order by notificationid desc";
+
+//select top 10 n.notification_desc, n.notificationId, COUNT(*) as recipientCount
+//from tbl_schedule_notifications n
+//    inner
+//join tbl_batch_notifications b on n.notificationID = b.NotificationID
+//    inner
+//join tbl_batch_notifications_recipients r on b.ID = r.BatchNotificationID
+//group by n.notificationID, n.notification_desc
+//order by notificationid desc
+
                 var command = GetCommand(sql);
                 var a = command.ExecuteReader();
                 while (a.Read())

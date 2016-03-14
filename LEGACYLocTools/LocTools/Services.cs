@@ -9,6 +9,9 @@ namespace LocTools
     {
         public IReadOnlyCollection<string> GetAllClients()
         {
+            var troller = new System.ServiceProcess.ServiceController();
+            troller.MachineName = "loc";
+
             ServiceController[] a = System.ServiceProcess.ServiceController.GetServices();
             var b = a.Where(s => s.ServiceName.IndexOf('$') > 0 && s.ServiceName.IndexOf("-LOC", StringComparison.InvariantCultureIgnoreCase) > s.ServiceName.IndexOf('$'));
             var clients = b.Select(s =>
