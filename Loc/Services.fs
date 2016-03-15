@@ -1,6 +1,7 @@
 ﻿module Services
 
 open System.ServiceProcess
+open Console
 
 //        public IReadOnlyCollection<string> GetAllClients()
 //        {
@@ -21,17 +22,6 @@ open System.ServiceProcess
 //            return clients.ToArray();
 //        }
 
-let cprintf c fmt = 
-    Printf.kprintf
-        (fun s ->
-            let old = System.Console.ForegroundColor
-            try
-              System.Console.ForegroundColor <- c;
-              System.Console.Write s
-            finally
-              System.Console.ForegroundColor <- old)
-        fmt
-
 let ignoreCase = System.StringComparison.InvariantCultureIgnoreCase
 
 let PrintService (service : ServiceController) =
@@ -39,7 +29,7 @@ let PrintService (service : ServiceController) =
                     | ServiceControllerStatus.Running -> System.ConsoleColor.DarkGreen
                     | ServiceControllerStatus.Stopped -> System.ConsoleColor.DarkRed
                     | _ -> System.Console.ForegroundColor
-    cprintf colour "%s %O" service.ServiceName service.Status
+    cprintfn colour "%s %O" service.ServiceName service.Status
 
 let PrintServices (services : ServiceController[]) =
     services |> Seq.iter PrintService
