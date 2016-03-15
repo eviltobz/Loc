@@ -21,7 +21,28 @@ open System.ServiceProcess
 //            return clients.ToArray();
 //        }
 
+let cprintf c fmt = 
+    Printf.kprintf
+        (fun s ->
+            let old = System.Console.ForegroundColor
+            try
+              System.Console.ForegroundColor <- c;
+              System.Console.Write s
+            finally
+              System.Console.ForegroundColor <- old)
+        fmt
+
 let ignoreCase = System.StringComparison.InvariantCultureIgnoreCase
+
+let PrintService (service : ServiceController) =
+    let colour = match service.Status with
+                    | ServiceControllerStatus.Running -> System.ConsoleColor.DarkGreen
+                    | ServiceControllerStatus.Stopped -> System.ConsoleColor.DarkRed
+                    | _ -> System.Console.ForegroundColor
+    cprintf colour "%s %O" service.ServiceName service.Status
+
+let PrintServices (services : ServiceController[]) =
+    services |> Seq.iter PrintService
 
 
 let TrimServiceName (service : ServiceController) = 
@@ -50,3 +71,7 @@ let GetAllClients =
 
     //"todo..."
     services |> Seq.map (fun x -> x.ServiceName) |> Seq.distinct
+
+let Haxx =
+    let services = ServiceController.GetServices()
+    PrintServices services

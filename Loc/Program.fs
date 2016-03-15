@@ -28,7 +28,7 @@ let main argv =
     printfn "args: %A" argv
     
     let parser = new CommandLine.Parser() //.Default
-    parser.Settings.CaseSensitive <- false
+//    parser.Settings.CaseSensitive <- false
 
 //    let pa = CommandLine.Parser.Default.ParseArguments<SetClientOptions, ListClientOptions>(argv)
     let pa = parser.ParseArguments<SetClientOptions, ListClientOptions>(argv)
@@ -37,6 +37,9 @@ let main argv =
                                (fun (x:ListClientOptions) -> ListClients() ), 
                                fun err -> printfn "err: %O" argv)
 
+    Services.Haxx
+    printfn "fin."
+    System.Console.ReadKey() |> ignore
 
     0 // return an integer exit code
 
