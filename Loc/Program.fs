@@ -2,6 +2,7 @@
 // See the 'F# Tutorial' project for more help.
 
 open CommandLine
+open UI
 
 //[<AllowNullLiteral>]
 [<Verb("SetClient", HelpText = "Set the active client")>]
@@ -25,19 +26,20 @@ let ListClients () =
 
 [<EntryPoint>]
 let main argv = 
-    printfn "args: %A" argv
-    
-    let parser = new CommandLine.Parser() //.Default
-//    parser.Settings.CaseSensitive <- false
+//    printfn "args: %A" argv
+//    let parser = new CommandLine.Parser() //.Default
+////    parser.Settings.CaseSensitive <- false
+////    let pa = CommandLine.Parser.Default.ParseArguments<SetClientOptions, ListClientOptions>(argv)
+//    let pa = parser.ParseArguments<SetClientOptions, ListClientOptions>(argv)
+//    let retcode = pa.MapResult((fun (x:SetClientOptions) -> printfn "Execute SetClient"), 
+//                               (fun (x:ListClientOptions) -> ListClients() ), 
+//                               fun err -> printfn "err: %O" argv)
+//
 
-//    let pa = CommandLine.Parser.Default.ParseArguments<SetClientOptions, ListClientOptions>(argv)
-    let pa = parser.ParseArguments<SetClientOptions, ListClientOptions>(argv)
+    //Services.Haxx
 
-    let retcode = pa.MapResult((fun (x:SetClientOptions) -> printfn "Execute SetClient"), 
-                               (fun (x:ListClientOptions) -> ListClients() ), 
-                               fun err -> printfn "err: %O" argv)
+    UI.HAXX
 
-    Services.Haxx
     printfn "fin."
     System.Console.ReadKey() |> ignore
 

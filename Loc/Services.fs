@@ -1,7 +1,7 @@
 ﻿module Services
 
 open System.ServiceProcess
-open Console
+open UI
 
 //        public IReadOnlyCollection<string> GetAllClients()
 //        {
@@ -63,5 +63,22 @@ let GetAllClients =
     services |> Seq.map (fun x -> x.ServiceName) |> Seq.distinct
 
 let Haxx =
-    let services = ServiceController.GetServices()
+    let computerName = "loc-tc-01.15below.local"
+    let computerName = "cascade.15below.local"
+
+//    let options = System.Management.ConnectionOptions()
+//    options.Username <- "\\Administrator"
+//    options.Password <- "Candide!"
+//    options.Impersonation <- System.Management.ImpersonationLevel.Impersonate
+//
+//    let scope = System.Management.ManagementScope("\\\\" + computerName + "\\root\\cimv2", options)
+//    scope.Connect()
+//
+//    let troller = new ServiceController()
+//    troller.MachineName <- computerName
+
+    // if this fails to connect check:
+    // * local user is set as admin on the box
+    // * firewall isn't blocking remote management
+    let services = ServiceController.GetServices(computerName)
     PrintServices services
