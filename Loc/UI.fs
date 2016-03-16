@@ -2,20 +2,21 @@
 
 open System
 
-let RED = System.ConsoleColor.Red
-let DARKRED = System.ConsoleColor.DarkRed
-let GREEN = System.ConsoleColor.Green
-let DARKGREEN = System.ConsoleColor.DarkGreen
+let RED = ConsoleColor.Red
+let DARKRED = ConsoleColor.DarkRed
+let GREEN = ConsoleColor.Green
+let DARKGREEN = ConsoleColor.DarkGreen
+let DEFAULT = ConsoleColor.Gray
 
 let private StartLine = Console.CursorTop
 
 let private printColouredString c (s:string) =
-    let old = System.Console.ForegroundColor
+    let old = Console.ForegroundColor
     try
-      System.Console.ForegroundColor <- c;
-      System.Console.Write s
+      Console.ForegroundColor <- c;
+      Console.Write s
     finally
-      System.Console.ForegroundColor <- old
+      Console.ForegroundColor <- old
 
 let private printStringAt printFunc line s = 
     let top = Console.CursorTop
@@ -36,13 +37,6 @@ let cprintfn c fmt =
             printfn "")
         fmt
 
-let printfat line fmt = 
-    let printFunc = fun (s:string) -> Console.Write s
-    Printf.kprintf
-        (fun s -> 
-            printStringAt printFunc line s)
-        fmt
-
 let cprintfat line c fmt = 
     let printFunc = printColouredString c
     Printf.kprintf
@@ -50,9 +44,9 @@ let cprintfat line c fmt =
             printStringAt printFunc line s)
         fmt
 
+
 let HAXX =
-    
-    for i in 0 .. 100 do
+    for i in 0 .. 5 do
         let colour = match i%2 with
                         | 0 -> RED
                         | _ -> GREEN
@@ -62,15 +56,27 @@ let HAXX =
 
     System.Threading.Thread.Sleep(1000)
 
-    for i in 0 .. 10 do
-        let line = i*i
+    for i in 0 .. 5 do
         match i%2 with
-        | 0 -> cprintfat line DARKRED "TOBZHAXX!!!!!!!!!---------******** %d %d" i line
-        | _ -> printfat line "TOBZHAXX!!!!!!!!!---------******** %d %d" i line
+        | 0 -> cprintfat i DARKRED "TOBZHAXX!!!!!!!!!---------******** %d" i 
+        | _ -> ()
 
-//    let realTop = Console.CursorTop
-//    let realLeft = Console.CursorLeft
-//    System.Console.SetCursorPosition(0, (StartLine + 10))
-//    cprintfn DARKRED "******** HAXXXX *********** - Cleft:%d Ctop:%d Wheight:%d WTop:%d" System.Console.CursorLeft  System.Console.CursorTop  System.Console.WindowHeight System.Console.WindowTop  
-//    
-//    System.Console.SetCursorPosition(realLeft, realTop)
+    let HardcodeyLine = 7
+    let flow = async {
+        cprintfn DEFAULT "Updatey. WHY ME NO WORKEE? :("
+        do! Async.Sleep 500
+        cprintfat  HardcodeyLine RED "Updatey 1"
+        do! Async.Sleep 500
+        cprintfat  HardcodeyLine DARKRED "Updatey 2"
+        do! Async.Sleep 500
+        cprintfat  HardcodeyLine GREEN "Updatey 3"
+        do! Async.Sleep 500
+        cprintfat  HardcodeyLine DARKGREEN "Updatey 4"
+        do! Async.Sleep 500
+        }
+
+    //Async.RunSynchronously flow
+    let a = Async.StartAsTask flow
+
+    ()
+
