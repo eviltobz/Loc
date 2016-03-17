@@ -64,18 +64,8 @@ let GetAllClients =
 
 let Haxx =
     let computerName = "loc-tc-01.15below.local"
-    let computerName = "cascade.15below.local"
-
-//    let options = System.Management.ConnectionOptions()
-//    options.Username <- "\\Administrator"
-//    options.Password <- "Candide!"
-//    options.Impersonation <- System.Management.ImpersonationLevel.Impersonate
-//
-//    let scope = System.Management.ManagementScope("\\\\" + computerName + "\\root\\cimv2", options)
-//    scope.Connect()
-//
-//    let troller = new ServiceController()
-//    troller.MachineName <- computerName
+//    let computerName = "cascade.15below.local"
+    let computerName = "192.168.3.16"
 
     // if this fails to connect check:
     // * local user is set as admin on the box
