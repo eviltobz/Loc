@@ -56,27 +56,29 @@ let HAXX =
 
     System.Threading.Thread.Sleep(1000)
 
-    for i in 0 .. 5 do
-        match i%2 with
-        | 0 -> cprintfat i DARKRED "TOBZHAXX!!!!!!!!!---------******** %d" i 
-        | _ -> ()
-
+//    for i in 0 .. 5 do
+//        match i%2 with
+//        | 0 -> cprintfat i DARKRED "TOBZHAXX!!!!!!!!!---------******** %d" i 
+//        | _ -> ()
+//
     let HardcodeyLine = 7
     let flow = async {
         cprintfn DEFAULT "Updatey. WHY ME NO WORKEE? :("
         do! Async.Sleep 500
-        cprintfat  HardcodeyLine RED "Updatey 1"
-        do! Async.Sleep 500
-        cprintfat  HardcodeyLine DARKRED "Updatey 2"
-        do! Async.Sleep 500
-        cprintfat  HardcodeyLine GREEN "Updatey 3"
-        do! Async.Sleep 500
-        cprintfat  HardcodeyLine DARKGREEN "Updatey 4"
-        do! Async.Sleep 500
+        cprintfat HardcodeyLine RED "WTF?!?!"
+//        cprintfat  HardcodeyLine RED "Updatey 1"
+//        do! Async.Sleep 500
+//        cprintfat  HardcodeyLine DARKRED "Updatey 2"
+//        do! Async.Sleep 500
+//        cprintfat  HardcodeyLine GREEN "Updatey 3"
+//        do! Async.Sleep 500
+//        cprintfat  HardcodeyLine DARKGREEN "Updatey 4"
+//        do! Async.Sleep 500
         }
 
-    //Async.RunSynchronously flow
-    let a = Async.StartAsTask flow
+    
+    Async.RunSynchronously flow
+//    let a = Async.StartAsTask flow
 
     ()
 

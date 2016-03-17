@@ -36,9 +36,9 @@ let main argv =
 //                               fun err -> printfn "err: %O" argv)
 //
 
-    Services.Haxx
+    //Services.Haxx
 
-    //UI.HAXX
+    UI.HAXX
 
     printfn "fin."
     System.Console.ReadKey() |> ignore

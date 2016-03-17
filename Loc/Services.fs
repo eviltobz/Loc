@@ -63,12 +63,14 @@ let GetAllClients =
     services |> Seq.map (fun x -> x.ServiceName) |> Seq.distinct
 
 let Haxx =
-    let computerName = "loc-tc-01.15below.local"
-//    let computerName = "cascade.15below.local"
-    let computerName = "192.168.3.16"
+    let computerName = "loc-tc-01"
+    let hostEntry = System.Net.Dns.GetHostEntry computerName
+    let ip = hostEntry.AddressList.[0]
+
+    cprintfn RED "Connecting to %s @ %A" computerName ip
 
     // if this fails to connect check:
     // * local user is set as admin on the box
     // * firewall isn't blocking remote management
-    let services = ServiceController.GetServices(computerName)
+    let services = ServiceController.GetServices(ip.ToString())
     PrintServices services
