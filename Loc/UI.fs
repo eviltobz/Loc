@@ -7,6 +7,8 @@ let DARKRED = ConsoleColor.DarkRed
 let GREEN = ConsoleColor.Green
 let DARKGREEN = ConsoleColor.DarkGreen
 let DEFAULT = ConsoleColor.Gray
+let DARKGREY = ConsoleColor.DarkGray
+let DARKYELLOW = ConsoleColor.DarkYellow
 
 let private StartLine = Console.CursorTop
 
@@ -21,7 +23,10 @@ let private printColouredString c (s:string) =
 let private printStringAt printFunc line s = 
     let top = Console.CursorTop
     let left = Console.CursorLeft
-    Console.SetCursorPosition(0, line - StartLine)
+    Console.SetCursorPosition(0, StartLine + line)
+    Console.Write(new string(' ', Console.WindowWidth))
+    Console.SetCursorPosition(0, StartLine + line)
+//    printf "(l:%d sl:%d t:%d)" line StartLine top
     printFunc s
     Console.SetCursorPosition(left, top) 
 
@@ -44,8 +49,25 @@ let cprintfat line c fmt =
             printStringAt printFunc line s)
         fmt
 
+let cprintflast c fmt =
+    let line = Console.CursorTop - StartLine - 1
+    cprintfat line c fmt
 
-let HAXX =
+let pHack c fmt =
+    let currentLine = Console.CursorTop - StartLine
+    let printFunc = printColouredString c
+    Printf.kprintf
+        (fun s -> 
+            printFunc s
+            printfn ""
+            currentLine)
+        fmt
+
+let Init() =
+    StartLine |> ignore
+
+
+let HAXX() =
     for i in 0 .. 5 do
         let colour = match i%2 with
                         | 0 -> RED
@@ -61,24 +83,26 @@ let HAXX =
 //        | 0 -> cprintfat i DARKRED "TOBZHAXX!!!!!!!!!---------******** %d" i 
 //        | _ -> ()
 //
-    let HardcodeyLine = 7
+
     let flow = async {
-        cprintfn DEFAULT "Updatey. WHY ME NO WORKEE? :("
-        do! Async.Sleep 500
-        cprintfat HardcodeyLine RED "WTF?!?!"
-//        cprintfat  HardcodeyLine RED "Updatey 1"
+//        cprintfat 2 DEFAULT "first"
 //        do! Async.Sleep 500
-//        cprintfat  HardcodeyLine DARKRED "Updatey 2"
+//        cprintfat 3 DARKRED "second"
 //        do! Async.Sleep 500
-//        cprintfat  HardcodeyLine GREEN "Updatey 3"
+//        cprintfat 4 DARKGREEN "third"
 //        do! Async.Sleep 500
-//        cprintfat  HardcodeyLine DARKGREEN "Updatey 4"
-//        do! Async.Sleep 500
+//        cprintfat 5 RED "forth"
+
+            for i in 0 .. 5 do
+                match i%2 with
+                | 0 -> cprintfat i DARKRED "TOBZHAXX!!!!!!!!!---------******** %d" i 
+                | _ -> ()
+                do! Async.Sleep 500
+
         }
 
-    
+//    Async.StartImmediate flow
     Async.RunSynchronously flow
-//    let a = Async.StartAsTask flow
+    flow
 
-    ()
 

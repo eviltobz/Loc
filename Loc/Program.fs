@@ -4,44 +4,92 @@
 open CommandLine
 open UI
 
+// Turn F# function to Func<> for commandline selection
+let Select func =
+    new System.Func<'arg, unit>(fun x -> func x)
+
 //[<AllowNullLiteral>]
 [<Verb("SetClient", HelpText = "Set the active client")>]
-type SetClientOptions () = class end
-//    [<Value(0)>]
-////    [<Option('n', Required = true, HelpText = "Client code to activate")>]
-//    member val Name = null with get, set
+type SetClientOptions () = class //end
+    [<Value(0, MetaName="Client Code", Required=true, HelpText="Client Code to activate")>]
+    member val Name:string = null with get, set
+    end
 
+//
+// All Clients Verbs
+//
 [<Verb("ListClients", HelpText = "List all installed clients")>]
 type ListClientOptions () = class end
 
+[<Verb("ListAllServices", HelpText = "List all running services for all installed clients")>]
+type ListAllServicesOptions () = class end
+
+[<Verb("StopAllServices", HelpText = "Stop all running services for all installed clients")>]
+type StopAllServicesOptions () = class end
+
+//
+// Specific Client Verbs
+//
+[<Verb("Stop", HelpText = "Stop services for current client")>]
+type StopCurrentClientOptions () = class end
 
 
-let UnexpectedArguments argv =
-    printfn "Unexpected arguments: %A" argv
-    printfn "...display help..."
+//let UnexpectedArguments argv =
+//    printfn "Unexpected arguments: %A" argv
+//    printfn "...display help..."
 
-let ListClients () = 
-    printfn "ListClients"
-    printfn "Services: %A" Services.GetAllClients
+//
+// All Client Functions
+//
+let ListClients (options:ListClientOptions) = 
+    Services.PrintAllClients()
+
+let SetClient (options:SetClientOptions) = 
+    cprintfn RED "Todo - Set current client to %s" (options.Name.ToUpper())
+
+let ListAllServices (options:ListAllServicesOptions) =
+    Services.PrintAllRunningServices()
+
+let StopAllServices (options:StopAllServicesOptions) =
+    Services.StopAllClients()
+//
+// Current Client Functions
+//
+let StopCurrentClient (options:StopCurrentClientOptions) = 
+    Services.StopCurrentClient()
+
 
 [<EntryPoint>]
 let main argv = 
-//    printfn "args: %A" argv
-//    let parser = new CommandLine.Parser() //.Default
-////    parser.Settings.CaseSensitive <- false
-////    let pa = CommandLine.Parser.Default.ParseArguments<SetClientOptions, ListClientOptions>(argv)
-//    let pa = parser.ParseArguments<SetClientOptions, ListClientOptions>(argv)
-//    let retcode = pa.MapResult((fun (x:SetClientOptions) -> printfn "Execute SetClient"), 
-//                               (fun (x:ListClientOptions) -> ListClients() ), 
-//                               fun err -> printfn "err: %O" argv)
-//
+    UI.Init()
+    cprintfn DARKGREY " args: %A" argv
+    let parser = new CommandLine.Parser(fun s -> 
+        s.CaseSensitive <- false
+        s.HelpWriter <- System.Console.Error)
+    let pa = parser.ParseArguments< // All Clients
+                                    SetClientOptions, ListClientOptions, ListAllServicesOptions, StopAllServicesOptions,
+                                    // Current Client
+                                    StopCurrentClientOptions
+                                    >(argv)
 
-    //Services.Haxx
 
-    UI.HAXX
+    let retcode = 
+        pa.MapResult(
+           Select SetClient,
+           Select ListClients,
+           Select ListAllServices,
+           Select StopAllServices,
+           Select StopCurrentClient,
+           fun err -> cprintfn DARKYELLOW "Currently selected client is %s" Config.get.CurrentClient)
+
+
+
+
+
+//    Services.Haxx
 
     printfn "fin."
-    System.Console.ReadKey() |> ignore
+//    System.Console.ReadKey() |> ignore
 
     0 // return an integer exit code
 
@@ -64,6 +112,9 @@ let main argv =
 // * * specified gimps/renderers RM1, RB1, other renderers? <gimp>X - eg AW5 needed for bus calls, AW1 for manual retrieves
 // * * * common set of gimps/renderers that are configured per-client? eg both AW1 & AW5 from somat like "loc start gimps"
 // * change all services to manual start (auto/delayed as options?)
+// * * startup types aren't on the troller check this blogpost for a pinvoke way: 
+// * * http://peterkellyonline.blogspot.co.uk/2011/04/configuring-windows-service.html
+// * * this may be all local machine stuff though - need to dig in about remote access.
 // * log purge specific service
 // * uninstall - churn through & call uninstall on each service
 // * * remove IIS bits too? database?
