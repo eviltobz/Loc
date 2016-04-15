@@ -10,99 +10,154 @@ let DEFAULT = ConsoleColor.Gray
 let DARKGREY = ConsoleColor.DarkGray
 let DARKYELLOW = ConsoleColor.DarkYellow
 
+let _RED s = (ConsoleColor.Red, s)
+let _DARKRED s = (ConsoleColor.DarkRed, s)
+let _GREEN s = (ConsoleColor.Green, s)
+let _DARKGREEN s = (ConsoleColor.DarkGreen, s)
+let _DEFAULT s = (ConsoleColor.Gray, s)
+let _DARKGREY s = (ConsoleColor.DarkGray, s)
+let _DARKYELLOW s = (ConsoleColor.DarkYellow, s)
+
 let private StartLine = Console.CursorTop
+let private Lock = new System.Object()
+//
+//let private writeMessage (message:(ConsoleColor*Object list) list) = 
+//    message |> Seq.iter (fun (colour, texts) ->
+//        Console.ForegroundColor <- colour
+//        texts |> Seq.iter Console.Write
+//    )
+//
+//let WriteAt line (message:(ConsoleColor*Object list) list) = 
+//    let old = Console.ForegroundColor
+//    writeMessage message
+//    Console.ForegroundColor <- old
+//
+//let Write (message:(ConsoleColor*Object list) list) = 
+//    let old = Console.ForegroundColor
+//    writeMessage message
+//    Console.ForegroundColor <- old
+//
+//let WriteLine (message:(ConsoleColor*Object list) list) = 
+//    let newLined = message @ [(RED, ["\n"])]
+//    Write newLined
+//
 
-let private printColouredString c (s:string) =
-    let old = Console.ForegroundColor
-    try
-      Console.ForegroundColor <- c;
-      Console.Write s
-    finally
-      Console.ForegroundColor <- old
 
-let private printStringAt printFunc line s = 
-    let top = Console.CursorTop
-    let left = Console.CursorLeft
-    Console.SetCursorPosition(0, StartLine + line)
-    Console.Write(new string(' ', Console.WindowWidth))
-    Console.SetCursorPosition(0, StartLine + line)
-//    printf "(l:%d sl:%d t:%d)" line StartLine top
-    printFunc s
-    Console.SetCursorPosition(left, top) 
+let private writeMessage line (message:(ConsoleColor*string) list) = 
+    let imp = fun () -> message |> Seq.iter (fun (colour, text) ->
+        Console.ForegroundColor <- colour
+        Console.Write text)
 
-let cprintf c fmt = 
-    Printf.kprintf
-        (fun s -> printColouredString c s)
-        fmt
+    lock Lock (fun () ->
+        let oldColour = Console.ForegroundColor
 
-let cprintfn c fmt =
-    Printf.kprintf
-        (fun s -> 
-            printColouredString c s
-            printfn "")
-        fmt
+        match line with
+        | None -> imp()
+        | Some x ->
+            let oldTop = Console.CursorTop
+            Console.SetCursorPosition(0, StartLine + x)
+            Console.Write(new string(' ', Console.WindowWidth))
+            Console.SetCursorPosition(0, StartLine + x)
+            imp()
+            Console.SetCursorPosition(0, oldTop)
 
-let cprintfat line c fmt = 
-    let printFunc = printColouredString c
-    Printf.kprintf
-        (fun s -> 
-            printStringAt printFunc line s)
-        fmt
+        Console.ForegroundColor <- oldColour
+        )
 
-let cprintflast c fmt =
-    let line = Console.CursorTop - StartLine - 1
-    cprintfat line c fmt
+let WriteAt line (message:(ConsoleColor*string) list) = 
+//    let oldTop = Console.CursorTop
+//    let oldColour = Console.ForegroundColor
+//
+//    Console.SetCursorPosition(0, StartLine + line)
+    writeMessage (Some line) message
 
-let pHack c fmt =
-    let currentLine = Console.CursorTop - StartLine
-    let printFunc = printColouredString c
-    Printf.kprintf
-        (fun s -> 
-            printFunc s
-            printfn ""
-            currentLine)
-        fmt
+//    Console.SetCursorPosition(0, oldTop)
+//    Console.ForegroundColor <- oldColour
+
+let Write (message:(ConsoleColor*string) list) = 
+//    let old = Console.ForegroundColor
+    writeMessage None message
+//    Console.ForegroundColor <- old
+
+let WriteLine (message:(ConsoleColor*string) list) = 
+    let newLined = message @ [(DEFAULT, "\n")]
+    Write newLined
+
+
+
+
+//
+//let HAXX () =
+//    Write [(RED, "in red"); (GREEN, "in green")]
+//    WriteLine [(DEFAULT, "things and stuff")]
+//
+//let private printColouredString c (s:string) =
+//    lock Lock (fun () ->
+//        let old = Console.ForegroundColor
+//        try
+//          Console.ForegroundColor <- c;
+//          Console.Write s
+//        finally
+//          Console.ForegroundColor <- old
+//    )
+//
+//let private printStringAt printFunc line s = 
+//    lock Lock (fun () ->
+//        let top = Console.CursorTop
+//        let left = Console.CursorLeft
+//        Console.SetCursorPosition(0, StartLine + line)
+//        Console.Write(new string(' ', Console.WindowWidth))
+//        Console.SetCursorPosition(0, StartLine + line)
+//    //    printf "(l:%d sl:%d t:%d)" line StartLine top
+//        printFunc s
+//        Console.SetCursorPosition(left, top) 
+//    )
+//
+//let cprintf c fmt = 
+//    lock Lock (fun () ->
+//        Printf.kprintf
+//            (fun s -> printColouredString c s)
+//            fmt
+//            )
+//
+//let cprintfn c fmt =
+//    lock Lock (fun () ->
+//        Printf.kprintf
+//            (fun s -> 
+//                printColouredString c s
+//                printfn "")
+//            fmt
+//            )
+//
+//let cprintfat line c fmt = 
+//    lock Lock (fun () ->
+//        let printFunc = printColouredString c
+//        Printf.kprintf
+//            (fun s -> 
+//                printStringAt printFunc line s)
+//            fmt
+//        )
+//
+//let cprintflast c fmt =
+//    lock Lock (fun () ->
+//        let line = Console.CursorTop - StartLine - 1
+//        cprintfat line c fmt
+//        )
+//
+//let private pHack c fmt =
+//    let currentLine = Console.CursorTop - StartLine
+//    let printFunc = printColouredString c
+//    Printf.kprintf
+//        (fun s -> 
+//            printFunc s
+//            printfn ""
+//            currentLine)
+//        fmt
 
 let Init() =
     StartLine |> ignore
 
-
-let HAXX() =
-    for i in 0 .. 5 do
-        let colour = match i%2 with
-                        | 0 -> RED
-                        | _ -> GREEN
-        cprintfn colour "line %d - Cleft:%d Ctop:%d Wheight:%d WTop:%d" i System.Console.CursorLeft  System.Console.CursorTop  System.Console.WindowHeight System.Console.WindowTop  
-
-    printfn "The starting CursorTop is still %d and the current one is %d" StartLine Console.CursorTop
-
-    System.Threading.Thread.Sleep(1000)
-
-//    for i in 0 .. 5 do
-//        match i%2 with
-//        | 0 -> cprintfat i DARKRED "TOBZHAXX!!!!!!!!!---------******** %d" i 
-//        | _ -> ()
-//
-
-    let flow = async {
-//        cprintfat 2 DEFAULT "first"
-//        do! Async.Sleep 500
-//        cprintfat 3 DARKRED "second"
-//        do! Async.Sleep 500
-//        cprintfat 4 DARKGREEN "third"
-//        do! Async.Sleep 500
-//        cprintfat 5 RED "forth"
-
-            for i in 0 .. 5 do
-                match i%2 with
-                | 0 -> cprintfat i DARKRED "TOBZHAXX!!!!!!!!!---------******** %d" i 
-                | _ -> ()
-                do! Async.Sleep 500
-
-        }
-
-//    Async.StartImmediate flow
-    Async.RunSynchronously flow
-    flow
+let NextLineIndex() =
+    Console.CursorTop - StartLine
 
 
