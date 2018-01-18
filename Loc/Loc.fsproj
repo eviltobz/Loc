@@ -25,7 +25,7 @@
     <PlatformTarget>AnyCPU</PlatformTarget>
     <DocumentationFile>bin\Debug\Loc.XML</DocumentationFile>
     <Prefer32Bit>true</Prefer32Bit>
-    <StartArguments>listclients</StartArguments>
+    <StartArguments>status</StartArguments>
   </PropertyGroup>
   <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Release|AnyCPU' ">
     <DebugType>pdbonly</DebugType>
@@ -56,13 +56,29 @@
   <Import Project="$(FSharpTargetsPath)" />
   <ItemGroup>
     <Compile Include="AssemblyInfo.fs" />
-    <Compile Include="Config.fs" />
+    <Compile Include="ConfigManager.fs" />
+    <Compile Include="CurrentConfig.fs" />
     <Compile Include="UI.fs" />
+    <Compile Include="Run.fs" />
     <Compile Include="Services.fs" />
     <Compile Include="Database.fs" />
+    <Compile Include="Commands.fs" />
+    <Compile Include="ConfigCommands.fs" />
     <Compile Include="Program.fs" />
     <None Include="App.config" />
     <Content Include="packages.config" />
+    <None Include="Scripts\BuildAndDeploy.ps1">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
+    <None Include="Scripts\Nuspecker.ps1">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
+    <None Include="Scripts\Octopush.ps1">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
+    <None Include="Scripts\Clients\lxa.ps1">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
   </ItemGroup>
   <ItemGroup>
     <Reference Include="CommandLine">
@@ -78,6 +94,9 @@
     <Reference Include="System.Core" />
     <Reference Include="System.Data" />
     <Reference Include="System.Management" />
+    <Reference Include="System.Management.Automation">
+      <HintPath>..\..\..\..\Program Files (x86)\Reference Assemblies\Microsoft\WindowsPowerShell\3.0\System.Management.Automation.dll</HintPath>
+    </Reference>
     <Reference Include="System.Numerics" />
     <Reference Include="System.ServiceProcess" />
   </ItemGroup>
