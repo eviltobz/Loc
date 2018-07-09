@@ -1,11 +1,13 @@
 ﻿
 Microsoft Visual Studio Solution File, Format Version 12.00
-# Visual Studio 14
-VisualStudioVersion = 14.0.23107.0
+# Visual Studio 15
+VisualStudioVersion = 15.0.27703.2035
 MinimumVisualStudioVersion = 10.0.40219.1
 Project("{F2A71F9B-5D33-465A-A702-920D77279786}") = "Loc", "Loc\Loc.fsproj", "{4E3B318D-1398-4A50-8A75-41E52C82354A}"
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "LocTools", "LegacyLocTools\LocTools\LocTools.csproj", "{68646534-DFB0-42E9-BF32-171D79A7BBDD}"
+EndProject
+Project("{F2A71F9B-5D33-465A-A702-920D77279786}") = "Loc.Tests", "Loc.Tests\Loc.Tests.fsproj", "{A7EF3648-5FDD-48FC-9FD1-AF3FEF78FFC8}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -21,8 +23,15 @@ Global
 		{68646534-DFB0-42E9-BF32-171D79A7BBDD}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{68646534-DFB0-42E9-BF32-171D79A7BBDD}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{68646534-DFB0-42E9-BF32-171D79A7BBDD}.Release|Any CPU.Build.0 = Release|Any CPU
+		{A7EF3648-5FDD-48FC-9FD1-AF3FEF78FFC8}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{A7EF3648-5FDD-48FC-9FD1-AF3FEF78FFC8}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{A7EF3648-5FDD-48FC-9FD1-AF3FEF78FFC8}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{A7EF3648-5FDD-48FC-9FD1-AF3FEF78FFC8}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
+	EndGlobalSection
+	GlobalSection(ExtensibilityGlobals) = postSolution
+		SolutionGuid = {1EF5F64B-B1B8-423D-824B-8A1A3F354314}
 	EndGlobalSection
 EndGlobal

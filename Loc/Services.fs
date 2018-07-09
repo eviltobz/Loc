@@ -3,6 +3,7 @@
 open CurrentConfig
 open System.ServiceProcess
 open UI
+open System
 
 
 type ClientService = {troller:ServiceController; name:string; instance:string; client:string}
@@ -12,7 +13,7 @@ type InstanceSelector =
     | None
     | Instance of string
 
-let serviceColours (service:ServiceController) = 
+let serviceColours (service:ServiceController) =
     match service.Status with
     | ServiceControllerStatus.Running -> (GREEN, DARKGREEN)
     | ServiceControllerStatus.Stopped -> (DARKGREY, DEFAULT)
@@ -39,39 +40,43 @@ let private PrintService (cs : ClientService) =
 
 let private PrintEnvironment (env : Environment) =
     printfn "%d services" (Seq.length env.services)
-    env.services 
+    env.services
         |> Seq.iter PrintService
 
-    
+
 let private getLocIpAddress() =
     let computerName = Config.LocAddress
     let hostEntry = System.Net.Dns.GetHostEntry computerName
     let ip = hostEntry.AddressList.[0]
     ip.ToString()
-    
-let private getAllServices() = 
+
+let private getAllServices() =
     try
         ServiceController.GetServices(getLocIpAddress())
     with
         | ex -> failwith ( "getAllServices threw: " + ex.Message + "\nPlease ensure that this domain account is a member of the Administrators group on the target machine" )
 
-let private extractServiceDetails (service : ServiceController) =
-    let name = service.ServiceName
+let public extractServiceDetails (name : string) =
+    //let name = service.ServiceName
+    //if name.Contains("-LOC") then
+    //    Console.Write(name)
     let instanceStart = name.IndexOf('$')
-    let endIndex = name.IndexOf("-LOC", instanceStart + 1, System.StringComparison.InvariantCultureIgnoreCase)
-    match (endIndex, instanceStart) with
+    let envIndex = name.IndexOf("-LOC", System.StringComparison.InvariantCultureIgnoreCase)
+    let getClient () =
+        let clientIndex = name.ToCharArray() |> Seq.take envIndex |> Seq.findIndexBack (fun x -> x = '-' || x = '$' || x = '.') |> (+) 1
+        name.Substring(clientIndex, envIndex - clientIndex)
+    match (envIndex, instanceStart) with
     | (-1, _) -> (null, null, null)
-    | (_, -1) ->
-        let startIndex = name.ToCharArray() |> Seq.take endIndex |> Seq.findIndexBack (fun x -> x = '-') |> fun x -> x + 1
-        (name, null, name.Substring(startIndex, endIndex - startIndex))
-    | _ ->
-        let startIndex = name.ToCharArray() |> Seq.take endIndex |> Seq.findIndexBack (fun x -> x = '.' || x = '$') |> fun x -> x + 1
-        (name.Substring(0, startIndex-1), name.Substring(startIndex), name.Substring(startIndex, endIndex - startIndex).ToUpper())
+    | (_, -1) -> (name, null, getClient())
+    | _ -> (name.Substring(0, instanceStart), name.Substring(instanceStart + 1), getClient())
 
-let private getAllEnvironments() = 
-    getAllServices() 
-        |> Seq.map (fun x -> 
-            let (service, instance, client) = extractServiceDetails(x) 
+
+let private getAllEnvironments() =
+    getAllServices()
+        |> Seq.map (fun x ->
+            let (service, instance, client) = extractServiceDetails(x.ServiceName)
+            //if x.ServiceName.Contains("-LOC") then
+            //    WriteLine [ YELLOW; " = "; (if service = null then "NULL" else service); ", "; (if instance = null then "NULL" else instance); ", "; (if client = null then "NULL" else client)]
             {troller=x; name=service; instance=instance; client=client})
         |> Seq.where (fun x -> not(System.String.IsNullOrWhiteSpace(x.client)) )
         |> Seq.sortBy (fun x -> (x.client, x.name, x.instance))
@@ -88,10 +93,10 @@ let private getCurrentClientEnvironment() =
 //let private stopService (s:ClientService) =
 //    let t =s.troller
 //    match t.Status with
-//    | ServiceControllerStatus.Running -> 
+//    | ServiceControllerStatus.Running ->
 //        cprintfn RED "Stopping %s" t.DisplayName
 //        t.Stop()
-//    | _ -> 
+//    | _ ->
 //        PrintService s
 
 let private stopServiceA (s:ClientService) index =
@@ -99,11 +104,11 @@ let private stopServiceA (s:ClientService) index =
 //        do! Async.SwitchToThreadPool()
         let t =s.troller
         match t.Status with
-        | ServiceControllerStatus.Running -> 
+        | ServiceControllerStatus.Running ->
 //            cprintfat index RED "Stopping %s" t.DisplayName
             WriteAt index [RED; "Stopping "; t.DisplayName]
             t.Stop()
-        | _ -> 
+        | _ ->
             PrintServiceAt s index
         ()
     }
@@ -112,11 +117,11 @@ let private stopServiceA (s:ClientService) index =
 //let private startService (s:ClientService) =
 //    let t =s.troller
 //    match t.Status with
-//    | ServiceControllerStatus.Stopped -> 
+//    | ServiceControllerStatus.Stopped ->
 //        cprintfn GREEN "Starting %s" t.ServiceName
 //        t.Start()
 //        cprintflast GREEN "Started - %s" t.ServiceName
-//    | _ -> 
+//    | _ ->
 //        printfn "%s - Running" t.ServiceName
 
 let private GetThreadInfo() =
@@ -131,9 +136,9 @@ let private GetThreadInfo() =
     System.Threading.ThreadPool.GetMinThreads( nW, nC)
     System.Threading.ThreadPool.GetMaxThreads( xW,  xC)
 
-    "A:" + aW.contents.ToString() + 
-    " Min:" + nW.contents.ToString() + 
-    " Max:" + xW.contents.ToString() 
+    "A:" + aW.contents.ToString() +
+    " Min:" + nW.contents.ToString() +
+    " Max:" + xW.contents.ToString()
 
 
 let private startServiceA (s:ClientService) index =
@@ -141,11 +146,11 @@ let private startServiceA (s:ClientService) index =
 //        let origA = GetThreadInfo()
         let t = s.troller
         match t.Status with
-        | ServiceControllerStatus.Stopped -> 
+        | ServiceControllerStatus.Stopped ->
 //            let origB = GetThreadInfo()
 //            let tid = System.Threading.Thread.CurrentThread.ManagedThreadId
 //            WriteAt index [RED; "Starting "; t.ServiceName;] // GREEN; GetThreadInfo(); " - "; RED; origA; " - "; origB; " tid:"; tid; " --- S!"]
-            try 
+            try
                 t.Start()
                 WriteAt index [RED; "Starting "; t.ServiceName;] // GREEN; GetThreadInfo(); " - "; RED; origA; " - "; origB; " tid:"; tid; GREEN; " --- R!"]
 
@@ -165,15 +170,15 @@ let private startServiceA (s:ClientService) index =
         | ServiceControllerStatus.Running -> WriteAt index [DARKGREEN; t.Status; " "; t.ServiceName]
         | _ -> WriteAt index [RED; "Can't start "; t.ServiceName; DEFAULT; " Current status is "; t.Status]
     }
-                        
-    
+
+
 let instanceStatus title selector =
     match selector with
     | All -> title + ":All "
     | None -> ""
     | Instance x -> title + ":" + x
 
-let isInstanceSelected (service:ClientService) selector = 
+let isInstanceSelected (service:ClientService) selector =
     match selector with
     | All -> true
     | None -> false
@@ -182,7 +187,7 @@ let isInstanceSelected (service:ClientService) selector =
 let isServiceSelected (misc:bool) (gimps:InstanceSelector) (renderers:InstanceSelector) (arbitrary:InstanceSelector) (service:ClientService) =
     let servicename = service.name.ToLower()
     match arbitrary with
-    | Instance name -> (servicename + "$" + (service.instance.ToLower())).Contains(name) 
+    | Instance name -> (servicename + "$" + (service.instance.ToLower())).Contains(name)
     | _ ->
         match servicename with
         | name when name.Contains("renderingmanager") -> isInstanceSelected service renderers
@@ -190,8 +195,8 @@ let isServiceSelected (misc:bool) (gimps:InstanceSelector) (renderers:InstanceSe
         | other -> misc
 
 
-                        
-let SetThreadPool size = 
+
+let SetThreadPool size =
 //    WriteLine [GREEN; "Starting Threadpool gubbins: "; GetThreadInfo()]
     System.Threading.ThreadPool.SetMinThreads(size,size) |> ignore
     System.Threading.ThreadPool.SetMaxThreads(size,size) |> ignore
@@ -205,14 +210,14 @@ let getAllClients() =
     getAllEnvironments() |> Seq.map (fun x -> x.client) |> Seq.distinct |> Seq.sort
 
 // do we want to _just_ have a print???? want client selection to have an interacty mode. **** OOOOOooooohhhh - computation expressions for interaction loops???
-let PrintAllClients() =  
+let PrintAllClients() =
     WriteLine [DARKYELLOW; "Installed LOC clients:"]
     getAllClients() |> Seq.iter System.Console.WriteLine
 
 let PrintAllRunningServices() =
 //    cprintfn DARKYELLOW "Listing all running services for all clients:"
     WriteLine [DARKYELLOW; "Listing all running services for all clients:"]
-    getAllEnvironments() 
+    getAllEnvironments()
     |> Seq.iter (fun env ->
         let running = env.services |> Seq.where (fun s->s.troller.Status = ServiceControllerStatus.Running)
         printfn "%s %d/%d services running" env.client (Seq.length running) (Seq.length env.services)
@@ -225,27 +230,27 @@ let StopAllClients() =
     SetDefaultThreadPool()
 
 //    let environments = getAllEnvironments()
-//    environments |> Seq.iter (fun e -> e.services |> Seq.iter (fun s-> stopService s)) 
+//    environments |> Seq.iter (fun e -> e.services |> Seq.iter (fun s-> stopService s))
 
-    let startIndex = UI.NextLineIndex() 
-    let initialState = 
+    let startIndex = UI.NextLineIndex()
+    let initialState =
         getAllEnvironments()
-        |> Seq.map (fun e -> 
-            e.services 
+        |> Seq.map (fun e ->
+            e.services
             |> Seq.map (fun s ->
 //                cprintfn DARKRED "Queueing %s" s.troller.ServiceName
                 WriteLine [DARKRED; "Queueing "; s.troller.ServiceName]
                 s))
         |> Seq.collect (fun x -> x)
     let job = async {
-        let! starts = 
+        let! starts =
             initialState
             |> Seq.mapi (fun i s -> stopServiceA s (i + startIndex))
             |> Async.Parallel
         ()
-        } 
-    job |> Async.RunSynchronously 
-    
+        }
+    job |> Async.RunSynchronously
+
 let StatusCurrentClient() =
 //    cprintfn DARKYELLOW "Currently selected client is %s" Config.get.CurrentClient
     WriteLine [DARKYELLOW; "Currently selected client is "; Config.CurrentClient]
@@ -257,21 +262,21 @@ let StatusCurrentClient() =
 //    let client = getCurrentClientEnvironment()
 //    client.services |> Seq.iter (fun s-> stopService s)
 
-let stopServices services = 
+let stopServices services =
     SetDefaultThreadPool()
-    let startIndex = UI.NextLineIndex() 
-    let initialState = 
+    let startIndex = UI.NextLineIndex()
+    let initialState =
         services
-        |> Seq.map (fun s -> 
+        |> Seq.map (fun s ->
             WriteLine [DARKRED; "Queueing "; s.troller.ServiceName]
             s)
     let job = async {
-        let! starts = 
+        let! starts =
             initialState
             |> Seq.mapi (fun i s -> stopServiceA s (i + startIndex))
             |> Async.Parallel
         ()
-        } 
+        }
     job |> Async.RunSynchronously
 
 
@@ -279,11 +284,11 @@ let StopCurrentClient() =
     WriteLine [DARKYELLOW; "Stopping all services for "; Config.CurrentClient]
     stopServices (getCurrentClientEnvironment().services)
 
-let StopInstance (instance:string) = 
+let StopInstance (instance:string) =
     WriteLine [DARKYELLOW; "Stopping instances of \""; instance; "\" for "; Config.CurrentClient]
-    
+
     let instanceName = instance.ToUpperInvariant()
-    let instances = 
+    let instances =
         getCurrentClientEnvironment().services
         |> Seq.where (fun i -> i.instance.ToUpperInvariant().Contains instanceName || i.name.ToUpperInvariant().Contains instanceName)
     stopServices instances
@@ -317,38 +322,38 @@ let StartServices (misc:bool) (gimps:InstanceSelector) (renderers:InstanceSelect
     (*
     let indices = [1 .. 10]
     WriteLine  [DARKYELLOW; "Before first Async: "; GetThreadInfo()]
-    
+
     let job = async {
         WriteLine  [DARKYELLOW; "In first Async: "; GetThreadInfo()]
-        let startIndex = UI.NextLineIndex() 
-        indices 
+        let startIndex = UI.NextLineIndex()
+        indices
         |> Seq.iter (fun i -> WriteLine [GREEN; "*"; i])
-        let! starts = 
+        let! starts =
             indices
             |> Seq.mapi (fun i -> THREADHAXX startIndex)
             |> Async.Parallel
         ()
-        } 
+        }
     job |> Async.RunSynchronously
     *)
 
 
     WriteLine [DARKYELLOW; "Starting "; Config.CurrentClient; " services:"]
     printfn "%O%O %O" (if misc then "Misc " else "") (instanceStatus "Gimps" gimps) (instanceStatus "Renderers" renderers)
-    let startIndex = UI.NextLineIndex() 
+    let startIndex = UI.NextLineIndex()
     let client = getCurrentClientEnvironment()
-    let currentState = 
-        client.services 
-        |> Seq.map (fun s -> (shouldStartService s, s)) 
-        |> Seq.map (fun x -> 
+    let currentState =
+        client.services
+        |> Seq.map (fun s -> (shouldStartService s, s))
+        |> Seq.map (fun x ->
             let shouldStart, cs = x
             match shouldStart with
             | true ->
                 match cs.troller.Status with
                 | ServiceControllerStatus.Stopped -> WriteLine [DARKRED; "Queueing "; cs.troller.ServiceName]
                 | _ -> WriteLine [DEFAULT; cs.troller.ServiceName; " - Running"]
-            | false -> 
-                let colour = 
+            | false ->
+                let colour =
                     match cs.troller.Status with
                     | ServiceControllerStatus.Running -> DARKGREEN
                     | _ -> DARKGREY
@@ -360,15 +365,15 @@ let StartServices (misc:bool) (gimps:InstanceSelector) (renderers:InstanceSelect
 
     let job = async {
 //        WriteLine  [DARKYELLOW; "In first Async: "; GetThreadInfo()]
-        let! starts = 
+        let! starts =
             currentState
-            |> Seq.mapi (fun i (shouldStart, cs) -> 
+            |> Seq.mapi (fun i (shouldStart, cs) ->
                 match shouldStart with
                 | true -> startServiceA cs (i + startIndex)
                 | false -> async { () } )
             |> Async.Parallel
         ()
-        } 
+        }
     job |> Async.RunSynchronously
 
 
